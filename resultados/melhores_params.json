@@ -1,0 +1,25 @@
+{
+  "KNN": {
+    "metric": "manhattan",
+    "n_neighbors": 3,
+    "weights": "uniform"
+  },
+  "Arvore de Decisao": {
+    "criterion": "entropy",
+    "max_depth": 3,
+    "min_samples_split": 2
+  },
+  "Random Forest": {
+    "max_depth": 5,
+    "min_samples_split": 2,
+    "n_estimators": 100
+  },
+  "SVM Linear": {
+    "C": 0.01
+  },
+  "SVM Polinomial (grau 2)": {
+    "C": 0.1,
+    "coef0": 5,
+    "gamma": "scale"
+  }
+}

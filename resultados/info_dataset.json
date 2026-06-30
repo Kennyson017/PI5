@@ -1,0 +1,14 @@
+{
+  "img_size": [
+    110,
+    70
+  ],
+  "n_treino": 143,
+  "n_teste": 54,
+  "treino_normal": 55,
+  "treino_maxima": 88,
+  "teste_normal": 27,
+  "teste_maxima": 27,
+  "n_atributos_por_imagem": 7700,
+  "tempo_execucao_segundos": 60.4
+}
