@@ -197,12 +197,13 @@ melhor = df_resultados.iloc[0]
 melhor_individual = df_resultados[~df_resultados["Modelo"].str.contains("Ensemble")].iloc[0]
 ensemble_row = df_resultados[df_resultados["Modelo"].str.contains("Ensemble")]
 
-col1, col2, col3, col4, col5 = st.columns(5)
+col1, col2, col3, col4, col5, col6 = st.columns(6)
 col1.metric("Imagens de treino", info_dataset["n_treino"])
 col2.metric("Imagens de teste", info_dataset["n_teste"])
-col3.metric("Tamanho da imagem", f"{info_dataset['img_size'][0]}×{info_dataset['img_size'][1]}")
-col4.metric("Atributos (pixels)", f"{info_dataset['n_atributos_por_imagem']:,}".replace(",", "."))
-col5.metric("🏆 Melhor modelo", melhor["Modelo"], f"{melhor['Acuracia']:.1%} acurácia")
+col3.metric("Tamanho da imagem Adaptada", f"{info_dataset['img_size'][0]}×{info_dataset['img_size'][1]}")
+col4.metric("Tamanho da imagem Original", f"440x280")
+col5.metric("Atributos (pixels)", f"{info_dataset['n_atributos_por_imagem']:,}".replace(",", "."))
+col6.metric("🏆 Melhor modelo", melhor["Modelo"], f"{melhor['Acuracia']:.1%} acurácia")
 
 st.divider()
 
@@ -357,7 +358,7 @@ if amostras is not None:
 
 
 # ==========================================================================
-# BLOCO 6 — INSIGHTS AUTOMÁTICOS
+# BLOCO 6 — INSIGHTS 
 # ==========================================================================
 st.header("💡 Insights")
 
@@ -420,5 +421,5 @@ for linha in texto_insights:
 
 st.caption(
     "Dashboard gerado para apresentação prática do Exercício 02 — "
-    "Projeto Integrador 5 (Trabalhando com imagens em Python)."
+    "Projeto Integrador 5."
 )
