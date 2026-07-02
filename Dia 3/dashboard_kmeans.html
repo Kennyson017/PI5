@@ -1,0 +1,813 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard K-means - Agrupamento de Textos</title>
+  <style>
+    :root {
+      --bg: #f6f8fa;
+      --panel: #ffffff;
+      --panel-alt: #f8fafc;
+      --ink: #1f2328;
+      --muted: #57606a;
+      --line: #d0d7de;
+      --blue: #0969da;
+      --green: #1a7f37;
+      --red: #cf222e;
+      --gold: #9a6700;
+      --violet: #8250df;
+      --header: #0f3460;
+      --shadow: 0 8px 20px rgba(31, 35, 40, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.5;
+    }
+
+    header {
+      width: min(1180px, calc(100% - 32px));
+      margin: 20px auto 8px;
+      background: var(--header);
+      color: #fff;
+      padding: 16px 20px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 12px auto 48px;
+    }
+
+    h1, h2, h3, p {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 4px;
+      font-size: clamp(22px, 4vw, 30px);
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin-bottom: 14px;
+    }
+
+    h3 {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      max-width: 840px;
+      color: #a8c4e0;
+      font-size: 13px;
+      margin-bottom: 0;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid.metrics {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .grid.two {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 32px;
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+
+    .metrics .metric:nth-child(1) {
+      border: 2px solid var(--green);
+    }
+
+    .metrics .metric:nth-child(1) strong {
+      color: var(--green);
+    }
+
+    .metrics .metric:nth-child(2) {
+      border: 2px solid var(--blue);
+    }
+
+    .metrics .metric:nth-child(2) strong {
+      color: var(--blue);
+    }
+
+    .metrics .metric:nth-child(3) {
+      border: 2px solid var(--gold);
+    }
+
+    .metrics .metric:nth-child(3) strong {
+      color: var(--gold);
+    }
+
+    .metrics .metric:nth-child(4) {
+      border: 2px solid var(--violet);
+    }
+
+    .metrics .metric:nth-child(4) strong {
+      color: var(--violet);
+    }
+
+    .metric span,
+    .muted {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .section {
+      margin-top: 18px;
+    }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(100px, 1fr));
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .step {
+      min-height: 128px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: var(--panel-alt);
+      position: relative;
+    }
+
+    .step b {
+      display: inline-grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #0f3460;
+      color: #ffffff;
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+
+    .step p {
+      color: var(--muted);
+      margin-bottom: 0;
+      font-size: 13px;
+    }
+
+    .cluster-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .cluster {
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      padding: 14px;
+      background: var(--panel-alt);
+    }
+
+    .cluster .tag {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 4px 9px;
+      color: #fff;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+
+    .cluster .count {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .terms {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .terms span {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: var(--panel);
+      font-size: 12px;
+      color: var(--ink);
+    }
+
+    .chart-box {
+      min-height: 300px;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 260px;
+    }
+
+    .metric-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .metric-tab {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--panel-alt);
+      color: var(--muted);
+      padding: 9px 13px;
+      font: inherit;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .metric-tab.active {
+      border-color: var(--blue);
+      background: #0f3460;
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .metric-detail {
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .metric-detail img {
+      display: block;
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-alt);
+    }
+
+    .metric-copy {
+      display: grid;
+      gap: 12px;
+    }
+
+    .metric-copy p {
+      margin-bottom: 0;
+    }
+
+    .best-point {
+      border-radius: 8px;
+      background: #fff5f5;
+      border: 1px solid #ffc9c9;
+      color: #82071e;
+      padding: 12px;
+      font-weight: 700;
+    }
+
+    .reading-box {
+      border-radius: 8px;
+      background: var(--panel-alt);
+      border: 1px solid var(--line);
+      padding: 12px;
+      color: var(--ink);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 10px 8px;
+      border: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: #ffffff;
+      background: #0f3460;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #0f141b;
+    }
+
+    .callout {
+      border-left: 5px solid var(--blue);
+      background: var(--panel-alt);
+      padding: 14px 16px;
+      border-radius: 8px;
+      color: var(--ink);
+    }
+
+    .explain-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .explain-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: var(--panel-alt);
+    }
+
+    .explain-card h3 {
+      margin-bottom: 6px;
+    }
+
+    .signal {
+      display: inline-block;
+      margin-top: 8px;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #ddf4ff;
+      color: #0969da;
+    }
+
+    .flow-note {
+      display: grid;
+      grid-template-columns: 190px 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .flow-note code {
+      color: #116329;
+      background: #dafbe1;
+      border: 1px solid #aceebb;
+      padding: 2px 5px;
+      border-radius: 5px;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 980px) {
+      .grid.metrics,
+      .grid.two,
+      .cluster-grid,
+      .explain-grid,
+      .metric-detail {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      header {
+        padding: 22px 16px;
+      }
+
+      main {
+        width: min(100% - 20px, 1180px);
+      }
+
+      .grid.metrics,
+      .grid.two,
+      .cluster-grid,
+      .explain-grid,
+      .metric-detail,
+      .flow-note {
+        grid-template-columns: 1fr;
+      }
+
+      .metric strong {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Agrupamento de Textos com K-means</h1>
+    <p class="subtitle">
+      Do texto bruto ao BoW/TF-IDF, escolha de k e interpretação dos tópicos encontrados.
+    </p>
+  </header>
+
+  <main>
+    <section class="grid metrics">
+      <div class="panel metric">
+        <strong>1500</strong>
+        <span>texto Analisados</span>
+      </div>
+      <div class="panel metric">
+        <strong>36.112</strong>
+        <span>termos no BoW filtrado</span>
+      </div>
+      <div class="panel metric">
+        <strong>7.970</strong>
+        <span>termos usados no TF-IDF</span>
+      </div>
+      <div class="panel metric">
+        <strong>4</strong>
+        <span>clusters escolhidos para macrotemas claros</span>
+      </div>
+    </section>
+
+    <section class="panel section">
+      <h2>Ideia geral</h2>
+      <p>
+        O objetivo é transformar textos em números para que o K-means consiga medir semelhança.
+        Depois disso, testamos vários valores de <b>k</b>, que é o número de grupos, e escolhemos
+        uma divisão que seja ao mesmo tempo aceitável nas métricas e fácil de explicar.
+      </p>
+      <div class="callout">
+        Neste trabalho, <b>k = 4</b> foi escolhido porque produz quatro assuntos bem compreensíveis:
+        blog/astronomia, esporte, gastronomia e ciência. Algumas métricas sugerem mais ou menos
+        grupos, mas esses resultados ficam menos didáticos para apresentar.
+      </div>
+    </section>
+
+    <section class="panel section">
+      <h2>Fluxo até o resultado</h2>
+      <div class="timeline">
+        <div class="step">
+          <b>1</b>
+          <h3>Base original</h3>
+          <p>Entrada com 1500 linhas de texto jornalístico em <code>docs/Base_dia_3(1).csv</code>.</p>
+        </div>
+        <div class="step">
+          <b>2</b>
+          <h3>Limpeza</h3>
+          <p>Remove pontuação e padroniza o texto em minúsculas.</p>
+        </div>
+        <div class="step">
+          <b>3</b>
+          <h3>Tokenização</h3>
+          <p>Quebra cada texto em uma lista de palavras.</p>
+        </div>
+        <div class="step">
+          <b>4</b>
+          <h3>Stopwords</h3>
+          <p>Remove palavras frequentes de pouco significado, como artigos e preposições.</p>
+        </div>
+        <div class="step">
+          <b>5</b>
+          <h3>Lematização</h3>
+          <p>Reduz palavras para formas-base, como "jogando" para "jogar".</p>
+        </div>
+        <div class="step">
+          <b>6</b>
+          <h3>BoW</h3>
+          <p>Transforma textos em contagens de palavras, criando uma visão simples da frequência dos termos.</p>
+        </div>
+        <div class="step">
+          <b>7</b>
+          <h3>TF-IDF</h3>
+          <p>Dá mais peso a termos característicos e reduz palavras comuns demais.</p>
+        </div>
+        <div class="step">
+          <b>8</b>
+          <h3>K-means</h3>
+          <p>Separa documentos parecidos em 4 grupos e extrai termos centrais.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid two section">
+      <div class="panel chart-box">
+        <h2>Distribuição dos clusters</h2>
+        <canvas id="clusterBar" aria-label="Gráfico de barras com quantidade de linhas de texto por cluster"></canvas>
+      </div>
+      <div class="panel chart-box">
+        <h2>Como ler a divisão</h2>
+        <canvas id="clusterBubbles" aria-label="Bolhas proporcionais ao tamanho dos clusters"></canvas>
+      </div>
+    </section>
+
+    <section class="panel section">
+      <h2>Grupos encontrados</h2>
+      <div class="cluster-grid" id="clusterCards"></div>
+    </section>
+
+    <section class="panel section">
+      <h2>Resumo dos tópicos</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Cluster</th>
+            <th>Interpretação</th>
+            <th>Linhas de texto</th>
+            <th>Termos mais fortes</th>
+          </tr>
+        </thead>
+        <tbody id="topicRows"></tbody>
+      </table>
+    </section>
+
+    <section class="panel section">
+      <h2>Métricas para escolher k</h2>
+      <p>
+        Cada métrica olha para a divisão por um ângulo diferente. Use os botões para comparar os
+        gráficos e ver o ponto vermelho, que marca o k destacado em cada leitura.
+      </p>
+      <div class="metric-tabs" role="tablist" aria-label="Selecionar métrica">
+        <button class="metric-tab active" type="button" data-metric="cotovelo">Cotovelo</button>
+        <button class="metric-tab" type="button" data-metric="silhouette">Silhouette</button>
+        <button class="metric-tab" type="button" data-metric="gap">Gap Statistic</button>
+        <button class="metric-tab" type="button" data-metric="calinski">Calinski-Harabasz</button>
+        <button class="metric-tab" type="button" data-metric="davies">Davies-Bouldin</button>
+      </div>
+      <div class="metric-detail">
+        <div class="metric-copy">
+          <h3 id="metricTitle">Cotovelo</h3>
+          <p id="metricText">
+            Mostra quanto os textos ficam mais próximos dos centros quando aumentamos o número de grupos.
+            A ideia é parar quando a curva deixa de cair com força.
+          </p>
+          <div class="best-point" id="metricBest">
+            Ponto vermelho: k = 4, usado como escolha clara para os macrotemas.
+          </div>
+          <div class="reading-box" id="metricReading">
+            Aqui não existe uma dobra perfeita. O k = 4 funciona bem porque separa assuntos fáceis de
+            reconhecer sem quebrar a base em muitos pedaços pequenos.
+          </div>
+        </div>
+        <img id="metricImage" src="dados/kmeans_cotovelo.png" alt="Gráfico da métrica selecionada">
+      </div>
+    </section>
+
+    <section class="grid two section">
+      <div class="panel">
+        <h2>Por que k = 4?</h2>
+        <p>
+          As métricas numéricas ajudam a testar vários valores de k, mas a melhor leitura também precisa
+          fazer sentido para pessoas. Com k = 4, os grupos viram macrotemas claros: blog/astronomia,
+          esporte, gastronomia e ciência.
+        </p>
+        <div class="callout">
+          As métricas não concordam entre si: algumas favorecem poucos grupos e outras favorecem
+          muitos grupos. Para explicar o resultado, k = 4 equilibra clareza, tamanho dos grupos e
+          interpretação dos tópicos.
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Configuracao usada</h2>
+        <div class="flow-note">
+          <code>TF-IDF</code>
+          <span><b>min_df=5</b> remove termos raros; <b>max_df=0.9</b> remove termos comuns demais.</span>
+        </div>
+        <div class="flow-note">
+          <code>KMeans</code>
+          <span><b>n_clusters=4</b>, <b>n_init=20</b>, <b>max_iter=300</b>, <b>algorithm=lloyd</b>, <b>random_state=42</b>.</span>
+        </div>
+        <div class="flow-note">
+          <code>Tópicos</code>
+          <span>Os termos principais são as palavras com maior peso no centro de cada cluster.</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const metricas = {
+      cotovelo: {
+        titulo: "Cotovelo",
+        imagem: "dados/kmeans_cotovelo.png",
+        texto: "Mostra quanto os textos ficam mais próximos dos centros quando aumentamos o número de grupos. A ideia é parar quando a curva deixa de cair com força.",
+        melhor: "Ponto vermelho: k = 4, usado como escolha clara para os macrotemas.",
+        leitura: "Aqui não existe uma dobra perfeita. O k = 4 funciona bem porque separa assuntos fáceis de reconhecer sem quebrar a base em muitos pedaços pequenos."
+      },
+      silhouette: {
+        titulo: "Silhouette",
+        imagem: "dados/kmeans_silhouette.png",
+        texto: "Compara a distância de cada texto para o seu próprio grupo com a distância para os outros grupos. Quando o valor sobe, os grupos tendem a estar mais separados.",
+        melhor: "Ponto vermelho: k = 15, o maior score entre os valores testados.",
+        leitura: "O melhor valor matemático aparece em k = 15, mas a vantagem sobre k = 4 é pequena. Por isso, k = 4 continua mais fácil de apresentar como visão geral."
+      },
+      gap: {
+        titulo: "Gap Statistic",
+        imagem: "dados/kmeans_gap_statistic.png",
+        texto: "Compara a organização dos textos reais com uma versão aleatória dos dados. Se os textos reais formam grupos melhores que o acaso, o valor do gap aumenta.",
+        melhor: "Ponto vermelho: k = 15, maior valor dentro do intervalo analisado.",
+        leitura: "Essa métrica empurra para uma divisão mais detalhada. Ela ajuda a enxergar subtemas, mas deixa a explicação menos direta."
+      },
+      calinski: {
+        titulo: "Calinski-Harabasz",
+        imagem: "dados/kmeans_metricas_extras.png",
+        texto: "Avalia se os grupos ficam compactos por dentro e separados entre si. Quanto maior o valor, mais forte é esse sinal.",
+        melhor: "Ponto vermelho: k = 2 para Calinski-Harabasz.",
+        leitura: "O k = 2 cria uma divisão ampla demais. Ele separa a base em blocos grandes, mas perde detalhes importantes dos assuntos."
+      },
+      davies: {
+        titulo: "Davies-Bouldin",
+        imagem: "dados/kmeans_metricas_extras.png",
+        texto: "Mede o quanto os clusters ainda parecem parecidos entre si. Quanto menor o valor, menos confusos ficam os grupos.",
+        melhor: "Ponto vermelho: k = 14 para Davies-Bouldin.",
+        leitura: "O k = 14 deixa os grupos mais finos. É útil para investigar subgrupos, mas fica menos simples para contar a história principal dos dados."
+      }
+    };
+
+    const clusters = [
+      {
+        id: 0,
+        nome: "Blog / astronomia",
+        textos: 141,
+        cor: "#8250df",
+        termos: ["blog", "postr", "completo", "leio", "leia", "post", "astrônomos", "planeta", "ano", "semana", "lear", "leiar"]
+      },
+      {
+        id: 1,
+        nome: "Esporte / futebol",
+        textos: 480,
+        cor: "#0969da",
+        termos: ["jogo", "clube", "jogador", "futebol", "ano", "dizer", "fazer", "time", "brasileiro", "olímpico", "brasil", "atleta"]
+      },
+      {
+        id: 2,
+        nome: "Gastronomia",
+        textos: 422,
+        cor: "#1a7f37",
+        termos: ["restaurante", "chef", "prato", "casa", "receita", "tel", "queijo", "cozinha", "onde", "vinho", "fazer", "evento"]
+      },
+      {
+        id: 3,
+        nome: "Ciência / pesquisa",
+        textos: 457,
+        cor: "#cf222e",
+        termos: ["cientista", "poder", "estudo", "pesquisador", "espacial", "pesquisa", "dizer", "animal", "ano", "descobrir", "científico", "universidade"]
+      }
+    ];
+
+    const totalTextos = clusters.reduce((soma, cluster) => soma + cluster.textos, 0);
+
+    function configurarMetricas() {
+      const botoes = document.querySelectorAll(".metric-tab");
+      const titulo = document.getElementById("metricTitle");
+      const texto = document.getElementById("metricText");
+      const melhor = document.getElementById("metricBest");
+      const leitura = document.getElementById("metricReading");
+      const imagem = document.getElementById("metricImage");
+
+      botoes.forEach(botao => {
+        botao.addEventListener("click", () => {
+          const metrica = metricas[botao.dataset.metric];
+          botoes.forEach(item => item.classList.remove("active"));
+          botao.classList.add("active");
+          titulo.textContent = metrica.titulo;
+          texto.textContent = metrica.texto;
+          melhor.textContent = metrica.melhor;
+          leitura.textContent = metrica.leitura;
+          imagem.src = metrica.imagem;
+          imagem.alt = "Gráfico da métrica " + metrica.titulo;
+        });
+      });
+    }
+
+    function desenharBarras() {
+      const canvas = document.getElementById("clusterBar");
+      const ctx = canvas.getContext("2d");
+      const ratio = window.devicePixelRatio || 1;
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      canvas.width = width * ratio;
+      canvas.height = height * ratio;
+      ctx.scale(ratio, ratio);
+      ctx.clearRect(0, 0, width, height);
+
+      const margem = { top: 20, right: 20, bottom: 48, left: 48 };
+      const chartW = width - margem.left - margem.right;
+      const chartH = height - margem.top - margem.bottom;
+      const max = Math.max(...clusters.map(c => c.textos));
+
+      ctx.strokeStyle = "#d0d7de";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(margem.left, margem.top);
+      ctx.lineTo(margem.left, margem.top + chartH);
+      ctx.lineTo(margem.left + chartW, margem.top + chartH);
+      ctx.stroke();
+
+      clusters.forEach((cluster, index) => {
+        const barW = chartW / clusters.length * 0.58;
+        const x = margem.left + index * (chartW / clusters.length) + (chartW / clusters.length - barW) / 2;
+        const barH = (cluster.textos / max) * (chartH - 18);
+        const y = margem.top + chartH - barH;
+
+        ctx.fillStyle = cluster.cor;
+        ctx.fillRect(x, y, barW, barH);
+
+        ctx.fillStyle = "#1f2328";
+        ctx.font = "700 14px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(cluster.textos, x + barW / 2, y - 8);
+
+        ctx.fillStyle = "#57606a";
+        ctx.font = "12px Arial";
+        ctx.fillText("C" + cluster.id, x + barW / 2, margem.top + chartH + 22);
+        ctx.fillText(Math.round(cluster.textos / totalTextos * 100) + "%", x + barW / 2, margem.top + chartH + 38);
+      });
+    }
+
+    function desenharBolhas() {
+      const canvas = document.getElementById("clusterBubbles");
+      const ctx = canvas.getContext("2d");
+      const ratio = window.devicePixelRatio || 1;
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      canvas.width = width * ratio;
+      canvas.height = height * ratio;
+      ctx.scale(ratio, ratio);
+      ctx.clearRect(0, 0, width, height);
+
+      const posicoes = [
+        { x: width * 0.24, y: height * 0.36 },
+        { x: width * 0.66, y: height * 0.32 },
+        { x: width * 0.38, y: height * 0.70 },
+        { x: width * 0.76, y: height * 0.68 }
+      ];
+      const max = Math.max(...clusters.map(c => c.textos));
+
+      clusters.forEach((cluster, index) => {
+        const raio = 34 + (cluster.textos / max) * 34;
+        const p = posicoes[index];
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, raio, 0, Math.PI * 2);
+        ctx.fillStyle = cluster.cor + "22";
+        ctx.fill();
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = cluster.cor;
+        ctx.stroke();
+
+        ctx.fillStyle = "#1f2328";
+        ctx.font = "700 16px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("C" + cluster.id, p.x, p.y - 6);
+        ctx.font = "12px Arial";
+        ctx.fillText(cluster.nome, p.x, p.y + 14);
+      });
+    }
+
+    function preencherConteudo() {
+      const cards = document.getElementById("clusterCards");
+      const rows = document.getElementById("topicRows");
+
+      clusters.forEach(cluster => {
+        const percentual = (cluster.textos / totalTextos * 100).toFixed(1).replace(".", ",");
+        const card = document.createElement("article");
+        card.className = "cluster";
+        card.innerHTML = `
+          <span class="tag" style="background:${cluster.cor}">Cluster ${cluster.id}</span>
+          <h3>${cluster.nome}</h3>
+          <div class="count">${cluster.textos}</div>
+          <div class="muted">${percentual}% das linhas</div>
+          <div class="terms">${cluster.termos.slice(0, 8).map(termo => `<span>${termo}</span>`).join("")}</div>
+        `;
+        cards.appendChild(card);
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td><b>${cluster.id}</b></td>
+          <td>${cluster.nome}</td>
+          <td>${cluster.textos}</td>
+          <td>${cluster.termos.join(", ")}</td>
+        `;
+        rows.appendChild(row);
+      });
+    }
+
+    configurarMetricas();
+    preencherConteudo();
+    desenharBarras();
+    desenharBolhas();
+    window.addEventListener("resize", () => {
+      desenharBarras();
+      desenharBolhas();
+    });
+  </script>
+</body>
+</html>

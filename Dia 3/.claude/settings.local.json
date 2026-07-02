@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(pip install openpyxl --quiet)",
+      "PowerShell(python \"C:\\\\Users\\\\UNIFEI\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-UNIFEI-Desktop-PI-5-1\\\\9e39493f-7294-48f8-bac6-8112043e482f\\\\scratchpad\\\\gerar_exercicio.py\")",
+      "PowerShell(python -c \"import matplotlib; print\\(matplotlib.__version__\\)\")",
+      "PowerShell(python \"C:\\\\Users\\\\UNIFEI\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-UNIFEI-Desktop-PI-5-1\\\\9e39493f-7294-48f8-bac6-8112043e482f\\\\scratchpad\\\\gerar_imagem.py\")",
+      "PowerShell(\\(Get-Content \"c:\\\\Users\\\\UNIFEI\\\\Desktop\\\\PI_5.1\\\\dados\\\\saida_4_lematizado.csv\" | Measure-Object -Line\\).Lines)",
+      "PowerShell(python juntar_arrays.py)",
+      "PowerShell(python -c \"from vocabulario import VOCABULARIO; print\\(len\\(VOCABULARIO\\)\\)\")",
+      "PowerShell(python -c \"import pandas as pd; df = pd.read_csv\\('dados/Base_dia_3\\(1\\).csv'\\); print\\(df.columns.tolist\\(\\)\\); print\\(df.shape\\)\")",
+      "PowerShell(python 7_kmeans_cotovelo.py)",
+      "PowerShell(python 8_kmeans.py)",
+      "PowerShell(python 10_kmeans_gap_statistic.py)",
+      "PowerShell(gh --version)",
+      "PowerShell(gh auth status 2>&1)"
+    ]
+  }
+}
